@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\src\dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\src\hook_engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\src\remote_scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\src\remote_hooker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\src\win32_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{EFCA6272-E024-329A-BB49-C5FA47B62FF5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

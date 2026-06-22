@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\project\self\WexinChatExportUtil\native\wexin-hook\build\CMakeFiles\b0b89ba0bc8ef91c96e398f9597b31a6\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{DE086C53-390E-36CC-84C6-9228CDF305A7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

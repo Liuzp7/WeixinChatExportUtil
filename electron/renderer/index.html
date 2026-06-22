@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>微信聊天记录导出工具</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <h1>微信聊天记录导出工具</h1>
+          <p>一键解密并导出微信 PC 4.x 聊天记录为 JSON，无需安装 Node / Python</p>
+        </div>
+        <span class="badge">WeChat 4.x</span>
+      </header>
+
+      <section class="card">
+        <label class="field">
+          <span class="label">微信数据目录</span>
+          <div class="input-row">
+            <input id="wxDir" type="text" placeholder="选择 xwechat_files 目录" />
+            <button id="pickWxDir" class="btn secondary" type="button">浏览</button>
+          </div>
+          <small id="wxDirHint" class="hint">
+            例如: D:\WeChat\xwechat_files（工具会自动扫描其中的账号）
+          </small>
+        </label>
+
+        <label id="accountField" class="field hidden">
+          <span class="label">选择微信账号</span>
+          <select id="accountSelect"></select>
+          <small id="accountHint" class="hint"></small>
+        </label>
+
+        <div id="readinessPanel" class="readiness hidden">
+          <div class="readiness-head">
+            <span id="readinessBadge" class="readiness-badge">检测中</span>
+            <span id="readinessHint" class="readiness-hint"></span>
+          </div>
+          <ul id="readinessSuggestions" class="readiness-list"></ul>
+          <div id="readinessProcesses" class="readiness-processes"></div>
+        </div>
+
+        <label class="field">
+          <span class="label">导出目录</span>
+          <div class="input-row">
+            <input id="outputDir" type="text" placeholder="选择 JSON 文件保存位置" />
+            <button id="pickOutputDir" class="btn secondary" type="button">浏览</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="label">当前账号 wxid（可选）</span>
+          <input id="selfWxid" type="text" placeholder="留空则自动从文件夹名推断" />
+        </label>
+
+        <label class="field">
+          <span class="label">密钥文件（可选，4.1.10+ 推荐）</span>
+          <div class="input-row">
+            <input id="keysPath" type="text" placeholder="all_keys.json 路径，或留空自动 Hook" />
+            <button id="pickKeysPath" class="btn secondary" type="button">浏览</button>
+          </div>
+          <small class="hint">微信 4.1.10+ 使用内置 Hook（npm run build:hook）或导入 all_keys.json</small>
+        </label>
+
+        <label class="field checkbox-field">
+          <input id="loginCapture" type="checkbox" checked />
+          <span>登录时 Hook 捕获密钥（内置 wexin_hook.dll，需管理员运行）</span>
+        </label>
+
+        <label class="field checkbox-field">
+          <input id="forceDecrypt" type="checkbox" />
+          <span>强制重新解密（即使已有 db_storage_decrypted）</span>
+        </label>
+
+        <div class="actions">
+          <button id="startBtn" class="btn primary" type="button">开始解密并导出</button>
+          <button id="openOutputBtn" class="btn secondary" type="button" disabled>打开导出目录</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="progress-head">
+          <span>导出进度</span>
+          <span id="progressText">等待开始</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <pre id="log" class="log"></pre>
+      </section>
+
+      <section class="card info">
+        <h2>使用说明</h2>
+        <ul>
+          <li>微信 4.1.10+ 需先构建内置 Hook 模块（<code>npm run build:hook</code>），并以<strong>管理员身份</strong>运行；也可导入 <code>all_keys.json</code>。</li>
+          <li>若解密失败，请勾选「登录时捕获密钥」：工具会关闭微信，在您重新登录时自动提取密钥（微信 4.1.10+ 必需）。</li>
+          <li>请<strong>先启动并登录</strong>微信 PC 版（Weixin.exe 需在运行中）。</li>
+          <li>选择 <code>xwechat_files</code> 目录即可，工具会自动扫描并列出其中的微信账号。</li>
+          <li>若目录下只有一个账号，会自动选中；多个账号时请在下拉框中选择。</li>
+          <li>导出结果包含 <code>conversations.json</code> 索引和 <code>chats/*.json</code> 各会话文件。</li>
+          <li>打包后的 exe 可直接发给他人使用，<strong>无需安装任何运行环境</strong>。</li>
+        </ul>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+name: Build wexin_hook.dll
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/wexin-hook/**'
+      - '.github/workflows/build-wexin-hook.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure and build
+        shell: cmd
+        run: |
+          cmake -S native/wexin-hook -B native/wexin-hook/build -A x64
+          cmake --build native/wexin-hook/build --config Release
+
+      - name: Collect DLL
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path assets/dll | Out-Null
+          $dll = Get-ChildItem native/wexin-hook/build -Recurse -Filter wexin_hook.dll | Select-Object -First 1
+          if (-not $dll) { throw 'wexin_hook.dll not found' }
+          Copy-Item $dll.FullName assets/dll/wexin_hook.dll -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wexin_hook-dll
+          path: assets/dll/wexin_hook.dll

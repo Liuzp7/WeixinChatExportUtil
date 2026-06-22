@@ -1,0 +1,3 @@
+D:/project/self/WexinChatExportUtil/native/wexin-hook/build/CMakeFiles/wexin_hook.dir
+D:/project/self/WexinChatExportUtil/native/wexin-hook/build/CMakeFiles/ALL_BUILD.dir
+D:/project/self/WexinChatExportUtil/native/wexin-hook/build/CMakeFiles/ZERO_CHECK.dir

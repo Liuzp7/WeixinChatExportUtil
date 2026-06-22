@@ -1,0 +1,64 @@
+{
+  "name": "wexinchat-exporter",
+  "version": "1.0.0",
+  "description": "微信 PC 4.x 聊天记录 JSON 导出工具",
+  "main": "electron/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "export": "node export.js",
+    "start": "electron .",
+    "build:hook": "powershell -ExecutionPolicy Bypass -File scripts/build-wexin-hook.ps1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win portable",
+    "dist:portable": "electron-builder --win portable",
+    "dist:installer": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "fzstd": "^0.1.1",
+    "koffi": "^3.0.2",
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.wexinchat.exporter",
+    "productName": "微信聊天记录导出",
+    "icon": "build/icon.png",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "lib/**/*",
+      "assets/**/*",
+      "build/icon.png",
+      "export.js",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/sql.js/dist/**",
+      "node_modules/koffi/**",
+      "assets/dll/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "微信聊天记录导出"
+    }
+  }
+}

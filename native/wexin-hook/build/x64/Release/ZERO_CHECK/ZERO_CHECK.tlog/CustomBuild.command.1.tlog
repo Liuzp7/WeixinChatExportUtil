@@ -1,0 +1,10 @@
+^D:\PROJECT\SELF\WEXINCHATEXPORTUTIL\NATIVE\WEXIN-HOOK\BUILD\CMAKEFILES\B0B89BA0BC8EF91C96E398F9597B31A6\GENERATE.STAMP.RULE
+setlocal
+"D:\developTool\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/project/self/WexinChatExportUtil/native/wexin-hook -BD:/project/self/WexinChatExportUtil/native/wexin-hook/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/project/self/WexinChatExportUtil/native/wexin-hook/build/wexin_hook.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
