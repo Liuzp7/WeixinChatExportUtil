@@ -50,7 +50,16 @@ const logEl = document.getElementById('log');
 const successSummary = document.getElementById('successSummary');
 const appVersion = document.getElementById('appVersion');
 const stepEls = [...document.querySelectorAll('.step')];
+const stepsHint = document.getElementById('stepsHint');
+const appNotice = document.getElementById('appNotice');
+const appNoticeIcon = document.getElementById('appNoticeIcon');
+const appNoticeTitle = document.getElementById('appNoticeTitle');
+const appNoticeMessage = document.getElementById('appNoticeMessage');
+const appNoticeDetail = document.getElementById('appNoticeDetail');
+const appNoticeBtn = document.getElementById('appNoticeBtn');
 
+let currentStep = 1;
+let noticeResolve = null;
 let lastOutputDir = '';
 let lastHtmlIndexPath = '';
 let scannedAccounts = [];
@@ -142,7 +151,77 @@ function getSelectedFormats() {
   return [...document.querySelectorAll('input[name="format"]:checked')].map((el) => el.value);
 }
 
+function getStepBlockedReason(step) {
+  if (scanRunning) {
+    return '正在扫描会话，请稍候完成后再切换步骤。';
+  }
+  if (exportRunning) {
+    return '正在导出，请稍候完成或取消后再切换步骤。';
+  }
+  if (step === 2 && !disclaimerAccepted.checked) {
+    return '请先勾选页面下方的免责声明，再点击「开始导出」按钮。';
+  }
+  if (step === 3 && !conversationItems.length) {
+    return '请先选择微信账号并点击「扫描会话」，或加载上次扫描结果。';
+  }
+  if (step === 4 && !conversationItems.length) {
+    return '请先完成会话扫描。';
+  }
+  if (step === 4 && !getSelectedUsernames().length) {
+    return '请至少勾选一个要导出的会话，再点击「下一步」。';
+  }
+  if (step === 5 && !lastOutputDir) {
+    return '请先完成导出，才能查看完成页。';
+  }
+  return null;
+}
+
+function canNavigateToStep(step) {
+  if (step === currentStep || step < 1 || step > 5) {
+    return false;
+  }
+  if (scanRunning || exportRunning) {
+    return false;
+  }
+  if (step < currentStep) {
+    return true;
+  }
+  return !getStepBlockedReason(step);
+}
+
+function updateStepNavUI() {
+  stepEls.forEach((el) => {
+    const n = Number(el.dataset.step);
+    const clickable = canNavigateToStep(n);
+    el.classList.toggle('clickable', clickable);
+    el.classList.toggle('locked', !clickable && n !== currentStep);
+    el.setAttribute('aria-current', n === currentStep ? 'step' : 'false');
+    el.setAttribute('aria-disabled', clickable || n === currentStep ? 'false' : 'true');
+    el.title = clickable
+      ? `前往：${el.textContent.trim()}`
+      : n === currentStep
+        ? '当前步骤'
+        : getStepBlockedReason(n) || '请先完成前面的步骤';
+  });
+
+  welcomeNextBtn.classList.toggle('cta-pulse', currentStep === 1 && disclaimerAccepted.checked);
+
+  if (!stepsHint) return;
+  if (scanRunning) {
+    stepsHint.textContent = '正在扫描会话，请稍候…';
+  } else if (exportRunning) {
+    stepsHint.textContent = '正在导出，请稍候…';
+  } else if (currentStep === 1 && !disclaimerAccepted.checked) {
+    stepsHint.textContent = '步骤条仅显示进度；请先勾选下方声明，再点击「开始导出」继续。';
+  } else if (currentStep === 1) {
+    stepsHint.textContent = '步骤条仅显示进度；请点击下方「开始导出」进入下一步。已完成步骤可点击返回。';
+  } else {
+    stepsHint.textContent = '使用页面下方按钮进入下一步；已完成步骤可点击返回。';
+  }
+}
+
 function setStep(step) {
+  currentStep = step;
   step1Panel.classList.toggle('hidden', step !== 1);
   step2Panel.classList.toggle('hidden', step !== 2);
   step3Panel.classList.toggle('hidden', step !== 3);
@@ -154,6 +233,24 @@ function setStep(step) {
     el.classList.toggle('active', n === step);
     el.classList.toggle('done', n < step);
   });
+  updateStepNavUI();
+}
+
+async function navigateToStep(step) {
+  if (step === currentStep) {
+    return;
+  }
+  if (!canNavigateToStep(step)) {
+    const reason = getStepBlockedReason(step);
+    if (reason) {
+      await showFriendlyError('还差一步', reason, null, 'guide');
+    }
+    return;
+  }
+  if (step === 2) {
+    void refreshConversationCacheHint();
+  }
+  setStep(step);
 }
 
 function appendLog(message) {
@@ -486,6 +583,7 @@ function updateConvSummary() {
   convSummary.textContent = `已选 ${selected.length} / ${conversationItems.length} 个会话，约 ${formatCount(selectedMessages)} 条消息`;
   toExportBtn.disabled = selected.length === 0;
   startBtn.disabled = exportRunning;
+  updateStepNavUI();
 }
 
 function setConvSelection(checked) {
@@ -504,8 +602,58 @@ function filterConversations(keyword) {
   updateConvSummary();
 }
 
-async function showFriendlyError(title, message, detail) {
-  await window.exporter.showErrorDialog({ title, message, detail });
+function inferNoticeTone(title, message) {
+  const text = `${title} ${message || ''}`;
+  if (/失败|错误|无法删除|无法扫描|导出失败|扫描失败|检测失败|删除失败/.test(text)) {
+    return 'error';
+  }
+  if (/请先|请选择|未选择|未找到|还差|暂时|建议|确认/.test(text)) {
+    return 'guide';
+  }
+  return 'warn';
+}
+
+const NOTICE_ICON = {
+  guide: 'i',
+  warn: '!',
+  error: '!',
+};
+
+function hideAppNotice() {
+  appNotice.classList.add('hidden');
+  if (noticeResolve) {
+    noticeResolve();
+    noticeResolve = null;
+  }
+}
+
+function showAppNotice({ title, message, detail, tone = 'guide' }) {
+  return new Promise((resolve) => {
+    noticeResolve = resolve;
+    appNoticeTitle.textContent = title || '提示';
+    appNoticeMessage.textContent = message || '';
+    if (detail) {
+      appNoticeDetail.textContent = detail;
+      appNoticeDetail.classList.remove('hidden');
+    } else {
+      appNoticeDetail.textContent = '';
+      appNoticeDetail.classList.add('hidden');
+    }
+    appNoticeIcon.textContent = NOTICE_ICON[tone] || NOTICE_ICON.guide;
+    appNoticeIcon.className = `app-notice-icon ${tone}`;
+    appNotice.classList.remove('hidden');
+    appNoticeBtn.focus();
+  });
+}
+
+async function showFriendlyError(title, message, detail, tone) {
+  const resolvedTone = tone || inferNoticeTone(title, message);
+  await showAppNotice({
+    title,
+    message,
+    detail,
+    tone: resolvedTone,
+  });
 }
 
 function getExportOptions() {
@@ -883,6 +1031,7 @@ async function scanConversations({ forceRescan = false } = {}) {
 
   userCancelledScan = false;
   scanRunning = true;
+  updateStepNavUI();
   scanBtn.disabled = true;
   scanBtn.textContent = '扫描中…';
   showScanToast('正在扫描', '正在准备，请稍候…');
@@ -891,6 +1040,7 @@ async function scanConversations({ forceRescan = false } = {}) {
   const result = await window.exporter.scanConversations(getExportOptions());
 
   scanRunning = false;
+  updateStepNavUI();
   scanBtn.disabled = false;
   hideScanToast();
   void refreshConversationCacheHint();
@@ -943,6 +1093,7 @@ async function startExport() {
   }
 
   exportRunning = true;
+  updateStepNavUI();
   startBtn.disabled = true;
   cancelBtn.classList.remove('hidden');
   openOutputBtn.disabled = true;
@@ -963,6 +1114,7 @@ async function startExport() {
   });
 
   exportRunning = false;
+  updateStepNavUI();
   cancelBtn.classList.add('hidden');
   startBtn.disabled = false;
 
@@ -1077,6 +1229,21 @@ rescanBtn.addEventListener('click', () => scanConversations({ forceRescan: true 
 disclaimerAccepted.addEventListener('change', () => {
   welcomeNextBtn.disabled = !disclaimerAccepted.checked;
   saveSettings();
+  updateStepNavUI();
+});
+
+stepEls.forEach((el) => {
+  el.addEventListener('click', () => {
+    void navigateToStep(Number(el.dataset.step));
+  });
+});
+
+appNoticeBtn.addEventListener('click', hideAppNotice);
+appNotice.querySelector('[data-notice-dismiss]').addEventListener('click', hideAppNotice);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !appNotice.classList.contains('hidden')) {
+    hideAppNotice();
+  }
 });
 
 welcomeNextBtn.addEventListener('click', () => {
@@ -1093,6 +1260,7 @@ cancelScanBtn.addEventListener('click', async () => {
   userCancelledScan = true;
   await window.exporter.cancelScan();
   scanRunning = false;
+  updateStepNavUI();
   scanBtn.disabled = false;
   scanBtn.textContent = currentConversationCache ? '重新扫描' : '扫描会话';
   hideScanToast();

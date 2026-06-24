@@ -22,12 +22,13 @@
       </header>
 
       <nav class="steps" aria-label="导出步骤">
-        <div class="step active" data-step="1"><span>1</span> 开始</div>
-        <div class="step" data-step="2"><span>2</span> 选择账号</div>
-        <div class="step" data-step="3"><span>3</span> 选择会话</div>
-        <div class="step" data-step="4"><span>4</span> 导出设置</div>
-        <div class="step" data-step="5"><span>5</span> 完成</div>
+        <button type="button" class="step active" data-step="1" aria-current="step"><span>1</span> 开始</button>
+        <button type="button" class="step" data-step="2"><span>2</span> 选择账号</button>
+        <button type="button" class="step" data-step="3"><span>3</span> 选择会话</button>
+        <button type="button" class="step" data-step="4"><span>4</span> 导出设置</button>
+        <button type="button" class="step" data-step="5"><span>5</span> 完成</button>
       </nav>
+      <p id="stepsHint" class="steps-hint" aria-live="polite"></p>
 
       <!-- Step 1: Welcome -->
       <section id="step1Panel" class="panel">
@@ -237,6 +238,21 @@
             <span id="scanToastNote" class="scan-toast-note">首次扫描可能需要几分钟。若弹出微信，请点击「登录」</span>
           </div>
           <button id="cancelScanBtn" class="btn secondary" type="button">取消</button>
+        </div>
+      </div>
+
+      <div id="appNotice" class="app-notice hidden" role="dialog" aria-modal="true" aria-labelledby="appNoticeTitle">
+        <div class="app-notice-backdrop" data-notice-dismiss></div>
+        <div class="app-notice-card">
+          <div id="appNoticeIcon" class="app-notice-icon guide" aria-hidden="true">i</div>
+          <div class="app-notice-body">
+            <h3 id="appNoticeTitle">提示</h3>
+            <p id="appNoticeMessage" class="app-notice-message"></p>
+            <p id="appNoticeDetail" class="app-notice-detail hidden"></p>
+          </div>
+          <div class="app-notice-actions">
+            <button id="appNoticeBtn" class="btn primary" type="button">知道了</button>
+          </div>
         </div>
       </div>
     </div>
