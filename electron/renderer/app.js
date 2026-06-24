@@ -12,7 +12,6 @@ const scanToastElapsed = document.getElementById('scanToastElapsed');
 const scanToastNote = document.getElementById('scanToastNote');
 const cacheSection = document.getElementById('cacheSection');
 const cacheList = document.getElementById('cacheList');
-const rescanBtn = document.getElementById('rescanBtn');
 const outputDirInput = document.getElementById('outputDir');
 const wxDirHint = document.getElementById('wxDirHint');
 const readinessPanel = document.getElementById('readinessPanel');
@@ -1128,7 +1127,7 @@ function hideScanToast() {
   stopScanElapsedTimer();
 }
 
-async function scanConversations({ forceRescan = false } = {}) {
+async function scanConversations() {
   const rootDir = wxDirInput.value.trim();
 
   if (!rootDir) {
@@ -1169,11 +1168,7 @@ async function scanConversations({ forceRescan = false } = {}) {
 
   if (!result.ok) {
     scanBtn.textContent = currentConversationCache ? '重新扫描' : '扫描会话';
-    await showFriendlyError(
-      '扫描失败',
-      result.error,
-      '请确认微信已登录，并在微信中打开几个聊天窗口后重试。\n若仍失败，请以管理员身份运行本程序，并在 Hook 就绪后再点击微信「登录」。'
-    );
+    await showFriendlyError('扫描失败', result.error);
     return;
   }
 
@@ -1341,7 +1336,6 @@ autoDetectBtn.addEventListener('click', async () => {
 });
 
 scanBtn.addEventListener('click', () => scanConversations());
-rescanBtn.addEventListener('click', () => scanConversations({ forceRescan: true }));
 
 disclaimerAccepted.addEventListener('change', () => {
   welcomeNextBtn.disabled = !disclaimerAccepted.checked;

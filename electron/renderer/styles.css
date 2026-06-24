@@ -482,6 +482,7 @@ select:focus {
   color: var(--muted);
   line-height: 1.65;
   font-size: 14px;
+  white-space: pre-line;
 }
 
 .app-notice-detail {
