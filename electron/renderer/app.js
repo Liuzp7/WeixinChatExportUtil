@@ -50,7 +50,6 @@ const logEl = document.getElementById('log');
 const successSummary = document.getElementById('successSummary');
 const appVersion = document.getElementById('appVersion');
 const stepEls = [...document.querySelectorAll('.step')];
-const stepsHint = document.getElementById('stepsHint');
 const appNotice = document.getElementById('appNotice');
 const appNoticeIcon = document.getElementById('appNoticeIcon');
 const appNoticeTitle = document.getElementById('appNoticeTitle');
@@ -205,19 +204,6 @@ function updateStepNavUI() {
   });
 
   welcomeNextBtn.classList.toggle('cta-pulse', currentStep === 1 && disclaimerAccepted.checked);
-
-  if (!stepsHint) return;
-  if (scanRunning) {
-    stepsHint.textContent = '正在扫描会话，请稍候…';
-  } else if (exportRunning) {
-    stepsHint.textContent = '正在导出，请稍候…';
-  } else if (currentStep === 1 && !disclaimerAccepted.checked) {
-    stepsHint.textContent = '步骤条仅显示进度；请先勾选下方声明，再点击「开始导出」继续。';
-  } else if (currentStep === 1) {
-    stepsHint.textContent = '步骤条仅显示进度；请点击下方「开始导出」进入下一步。已完成步骤可点击返回。';
-  } else {
-    stepsHint.textContent = '使用页面下方按钮进入下一步；已完成步骤可点击返回。';
-  }
 }
 
 function setStep(step) {
@@ -1209,7 +1195,7 @@ autoDetectBtn.addEventListener('click', async () => {
   autoDetectBtn.textContent = '检测中…';
   const result = await window.exporter.detectWxPaths();
   autoDetectBtn.disabled = false;
-  autoDetectBtn.textContent = '自动检测微信目录';
+  autoDetectBtn.textContent = '自动检测';
 
   if (!result.ok) {
     await showFriendlyError('检测失败', result.error || '无法扫描常见微信目录');

@@ -28,7 +28,6 @@
         <button type="button" class="step" data-step="4"><span>4</span> 导出设置</button>
         <button type="button" class="step" data-step="5"><span>5</span> 完成</button>
       </nav>
-      <p id="stepsHint" class="steps-hint" aria-live="polite"></p>
 
       <!-- Step 1: Welcome -->
       <section id="step1Panel" class="panel">
@@ -96,48 +95,74 @@
 
       <!-- Step 2: Account -->
       <section id="step2Panel" class="panel hidden">
-        <div class="card">
-          <div class="card-head">
+        <div class="card step2-card">
+          <div class="step2-intro">
             <h2>选择微信账号</h2>
-            <button id="autoDetectBtn" class="btn ghost" type="button">自动检测</button>
+            <p class="subhead">按顺序完成以下三步，然后扫描或加载会话列表。</p>
           </div>
 
-          <div id="detectResults" class="detect-results hidden"></div>
+          <div class="step2-flow">
+            <section class="step2-block" aria-labelledby="step2Block1Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">1</span>
+                <div class="step2-block-title">
+                  <h3 id="step2Block1Title">微信数据目录</h3>
+                  <p>定位 <code>xwechat_files</code> 文件夹</p>
+                </div>
+                <button id="autoDetectBtn" class="btn ghost step2-block-action" type="button">自动检测</button>
+              </header>
 
-          <div class="wx-path-tip">
-            <strong>如何找到数据目录？</strong>
-            <p>打开微信「设置 → 账号与存储 → 存储位置」，进入该路径下的 <code>xwechat_files</code> 文件夹，即为所需目录。</p>
+              <details class="step2-tip">
+                <summary>如何找到数据目录？</summary>
+                <p>打开微信「设置 → 账号与存储 → 存储位置」，进入该路径下的 <code>xwechat_files</code> 文件夹即可。</p>
+              </details>
+
+              <div id="detectResults" class="detect-results hidden"></div>
+
+              <label class="field step2-field">
+                <div class="input-row">
+                  <input id="wxDir" type="text" placeholder="例如 D:\WeChat\xwechat_files" />
+                  <button id="pickWxDir" class="btn secondary" type="button">浏览</button>
+                </div>
+                <small id="wxDirHint" class="hint">通常位于 Documents 或 D:\WeChat\xwechat_files</small>
+              </label>
+            </section>
+
+            <section id="accountField" class="step2-block hidden" aria-labelledby="step2Block2Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">2</span>
+                <div class="step2-block-title">
+                  <h3 id="step2Block2Title">选择账号</h3>
+                  <p>该目录下检测到的微信账号</p>
+                </div>
+              </header>
+
+              <div id="accountList" class="account-list"></div>
+              <small id="accountHint" class="hint"></small>
+
+              <div id="readinessPanel" class="readiness hidden">
+                <div class="readiness-head">
+                  <span id="readinessBadge" class="readiness-badge">检测中</span>
+                  <span id="readinessHint" class="readiness-hint"></span>
+                </div>
+                <ul id="readinessSuggestions" class="readiness-list"></ul>
+              </div>
+            </section>
+
+            <section id="cacheSection" class="step2-block step2-block-cache hidden" aria-labelledby="step2Block3Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">3</span>
+                <div class="step2-block-title">
+                  <h3 id="step2Block3Title">上次扫描结果</h3>
+                  <p>可直接加载，跳过重新扫描</p>
+                </div>
+              </header>
+
+              <div id="cacheList" class="cache-list"></div>
+            </section>
           </div>
 
-          <label class="field">
-            <span class="label">微信数据目录</span>
-            <div class="input-row">
-              <input id="wxDir" type="text" placeholder="选择 xwechat_files 文件夹" />
-              <button id="pickWxDir" class="btn secondary" type="button">浏览</button>
-            </div>
-            <small id="wxDirHint" class="hint">通常位于 Documents 或 D:\WeChat\xwechat_files</small>
-          </label>
-
-          <div id="accountField" class="field hidden">
-            <span class="label">选择微信账号</span>
-            <div id="accountList" class="account-list"></div>
-            <small id="accountHint" class="hint"></small>
-          </div>
-
-          <div id="readinessPanel" class="readiness hidden">
-            <div class="readiness-head">
-              <span id="readinessBadge" class="readiness-badge">检测中</span>
-              <span id="readinessHint" class="readiness-hint"></span>
-            </div>
-            <ul id="readinessSuggestions" class="readiness-list"></ul>
-          </div>
-
-          <div id="cacheSection" class="cache-section hidden">
-            <span class="label">上次扫描结果</span>
-            <div id="cacheList" class="cache-list"></div>
-          </div>
-
-          <div class="actions">
+          <div class="actions step2-actions">
             <button id="accountBackBtn" class="btn secondary" type="button">上一步</button>
             <button id="scanBtn" class="btn primary" type="button">扫描会话</button>
           </div>
