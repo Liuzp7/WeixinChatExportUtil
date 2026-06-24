@@ -504,6 +504,7 @@ select:focus {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .step2-intro {
@@ -677,11 +678,6 @@ select:focus {
   box-shadow: 0 0 0 1px rgba(7, 193, 96, 0.12);
 }
 
-.cache-item.stale {
-  background: #fffbeb;
-  border-color: rgba(245, 158, 11, 0.25);
-}
-
 .cache-item-info {
   min-width: 0;
   flex: 1;
@@ -694,18 +690,10 @@ select:focus {
   margin-bottom: 4px;
 }
 
-.cache-item.stale .cache-item-title {
-  color: #92400e;
-}
-
 .cache-item-meta {
   font-size: 12px;
   color: #15803d;
   line-height: 1.5;
-}
-
-.cache-item.stale .cache-item-meta {
-  color: #b45309;
 }
 
 .cache-item-actions {

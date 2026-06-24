@@ -56,9 +56,11 @@ const appNoticeTitle = document.getElementById('appNoticeTitle');
 const appNoticeMessage = document.getElementById('appNoticeMessage');
 const appNoticeDetail = document.getElementById('appNoticeDetail');
 const appNoticeBtn = document.getElementById('appNoticeBtn');
+const appNoticeCancelBtn = document.getElementById('appNoticeCancelBtn');
 
 let currentStep = 1;
 let noticeResolve = null;
+let noticeMode = 'alert';
 let lastOutputDir = '';
 let lastHtmlIndexPath = '';
 let scannedAccounts = [];
@@ -161,7 +163,7 @@ function getStepBlockedReason(step) {
     return '请先勾选页面下方的免责声明，再点击「开始导出」按钮。';
   }
   if (step === 3 && !conversationItems.length) {
-    return '请先选择微信账号并点击「扫描会话」，或加载上次扫描结果。';
+    return '请先选择微信账号并点击「扫描会话」，或加载历史扫描结果。';
   }
   if (step === 4 && !conversationItems.length) {
     return '请先完成会话扫描。';
@@ -605,17 +607,43 @@ const NOTICE_ICON = {
   error: '!',
 };
 
-function hideAppNotice() {
+function finishAppNotice(result) {
   appNotice.classList.add('hidden');
+  appNoticeCancelBtn.classList.add('hidden');
+  appNoticeActions.classList.remove('confirm-mode');
+  appNoticeBtn.classList.remove('danger');
+  appNoticeBtn.classList.add('primary');
+  appNoticeBtn.textContent = '知道了';
+  noticeMode = 'alert';
   if (noticeResolve) {
-    noticeResolve();
+    noticeResolve(result);
     noticeResolve = null;
   }
 }
 
-function showAppNotice({ title, message, detail, tone = 'guide' }) {
+const appNoticeActions = appNotice.querySelector('.app-notice-actions');
+
+function dismissAppNotice() {
+  finishAppNotice(noticeMode === 'confirm' ? false : undefined);
+}
+
+function confirmAppNotice() {
+  finishAppNotice(noticeMode === 'confirm' ? true : undefined);
+}
+
+function showAppNotice({
+  title,
+  message,
+  detail,
+  tone = 'guide',
+  confirm = false,
+  confirmLabel = '确定',
+  cancelLabel = '取消',
+  dangerConfirm = false,
+}) {
   return new Promise((resolve) => {
     noticeResolve = resolve;
+    noticeMode = confirm ? 'confirm' : 'alert';
     appNoticeTitle.textContent = title || '提示';
     appNoticeMessage.textContent = message || '';
     if (detail) {
@@ -627,8 +655,31 @@ function showAppNotice({ title, message, detail, tone = 'guide' }) {
     }
     appNoticeIcon.textContent = NOTICE_ICON[tone] || NOTICE_ICON.guide;
     appNoticeIcon.className = `app-notice-icon ${tone}`;
+
+    if (confirm) {
+      appNoticeCancelBtn.textContent = cancelLabel;
+      appNoticeCancelBtn.classList.remove('hidden');
+      appNoticeActions.classList.add('confirm-mode');
+      appNoticeBtn.textContent = confirmLabel;
+      appNoticeBtn.classList.toggle('primary', !dangerConfirm);
+      appNoticeBtn.classList.toggle('danger', dangerConfirm);
+    }
+
     appNotice.classList.remove('hidden');
-    appNoticeBtn.focus();
+    (confirm ? appNoticeCancelBtn : appNoticeBtn).focus();
+  });
+}
+
+async function showConfirmDialog({ title, message, detail, tone = 'warn', confirmLabel = '确定', cancelLabel = '取消', dangerConfirm = false }) {
+  return showAppNotice({
+    title,
+    message,
+    detail,
+    tone,
+    confirm: true,
+    confirmLabel,
+    cancelLabel,
+    dangerConfirm,
   });
 }
 
@@ -643,9 +694,13 @@ async function showFriendlyError(title, message, detail, tone) {
 }
 
 function getExportOptions() {
+  const accountPath = resolvedAccountPath || getSelectedAccountPath();
+  const account = scannedAccounts.find((item) => item.path === accountPath);
+  const cachedProfile = accountPath ? accountProfileCache.get(accountPath) : null;
   return {
     wxDir: wxDirInput.value.trim(),
-    accountPath: resolvedAccountPath || getSelectedAccountPath(),
+    accountPath,
+    displayName: cachedProfile?.displayName || account?.displayName || null,
     outputDir: outputDirInput.value.trim(),
     selfWxid: null,
     forceDecrypt: false,
@@ -805,17 +860,85 @@ function getParentDir(filePath) {
   return idx >= 0 ? normalized.slice(0, idx) : normalized;
 }
 
-function getAccountLabel(accountPath, selfWxid = null) {
+function getAccountLabel(accountPath, hints = null) {
+  let selfWxid = null;
+  let displayName = null;
+
+  if (typeof hints === 'string') {
+    selfWxid = hints;
+  } else if (hints && typeof hints === 'object') {
+    selfWxid = hints.selfWxid || null;
+    displayName = hints.displayName || null;
+  }
+
+  if (displayName) {
+    return displayName;
+  }
+
+  const profile = accountProfileCache.get(accountPath);
+  if (profile?.displayName) {
+    return profile.displayName;
+  }
+
   const account = scannedAccounts.find((item) => item.path === accountPath);
   if (account?.displayName) {
     return account.displayName;
   }
+
+  const folderName = accountPath.split(/[/\\]/).pop() || accountPath;
+  const match = folderName.match(/^(.+?)_c[a-f0-9]+$/i);
+  const fromFolder = match ? match[1] : folderName;
+  if (fromFolder && !/^wxid_/i.test(fromFolder)) {
+    return fromFolder;
+  }
+
   if (selfWxid) {
     return selfWxid;
   }
-  const folderName = accountPath.split(/[/\\]/).pop() || accountPath;
-  const match = folderName.match(/^(.+?)_c[a-f0-9]+$/i);
-  return match ? match[1] : folderName;
+
+  return fromFolder;
+}
+
+async function enrichCacheAccountProfiles(caches) {
+  const missing = [];
+
+  for (const cache of caches) {
+    if (cache.displayName) {
+      continue;
+    }
+    const profile = accountProfileCache.get(cache.accountPath);
+    if (profile?.displayName) {
+      cache.displayName = profile.displayName;
+      continue;
+    }
+    missing.push({ path: cache.accountPath, wxid: cache.selfWxid });
+  }
+
+  if (!missing.length) {
+    return;
+  }
+
+  try {
+    const result = await window.exporter.enrichAccounts({ accounts: missing });
+    if (!result.ok || !result.accounts?.length) {
+      return;
+    }
+
+    cacheAccountProfiles(result.accounts);
+    for (const account of result.accounts) {
+      const cache = caches.find((item) => item.accountPath === account.path);
+      if (!cache || !account.displayName) {
+        continue;
+      }
+      cache.displayName = account.displayName;
+      window.exporter.patchConversationCacheLabel({
+        accountPath: account.path,
+        displayName: account.displayName,
+      }).catch(() => {});
+    }
+  } catch {
+    // ignore profile enrichment failures
+  }
 }
 
 async function refreshConversationCacheHint() {
@@ -835,6 +958,7 @@ async function refreshConversationCacheHint() {
     ? result.caches.find((item) => item.accountPath === selectedPath) || null
     : null;
 
+  await enrichCacheAccountProfiles(result.caches);
   renderConversationCacheList(result.caches, selectedPath);
   cacheSection.classList.remove('hidden');
 
@@ -851,22 +975,18 @@ function renderConversationCacheList(caches, selectedPath) {
     if (cache.accountPath === selectedPath) {
       item.classList.add('selected');
     }
-    if (cache.stale) {
-      item.classList.add('stale');
-    }
 
     const info = document.createElement('div');
     info.className = 'cache-item-info';
 
     const title = document.createElement('div');
     title.className = 'cache-item-title';
-    title.textContent = getAccountLabel(cache.accountPath, cache.selfWxid);
+    title.textContent = getAccountLabel(cache.accountPath, cache);
 
     const meta = document.createElement('div');
     meta.className = 'cache-item-meta';
     const scannedAt = formatCacheTime(cache.scannedAt);
-    const staleNote = cache.stale ? ' · 可能有新消息' : '';
-    meta.textContent = `${cache.conversationCount} 个会话，约 ${formatCount(cache.totalMessages)} 条消息${scannedAt ? ` · ${scannedAt}` : ''}${staleNote}`;
+    meta.textContent = `${cache.conversationCount} 个会话，约 ${formatCount(cache.totalMessages)} 条消息${scannedAt ? ` · ${scannedAt}` : ''}`;
 
     info.appendChild(title);
     info.appendChild(meta);
@@ -895,8 +1015,19 @@ function renderConversationCacheList(caches, selectedPath) {
 }
 
 async function deleteConversationCache(accountPath) {
-  const label = getAccountLabel(accountPath);
-  const confirmed = window.confirm(`确定删除「${label}」的上次扫描结果吗？删除后需要重新扫描才能导出。`);
+  let cache = conversationCacheEntries.find((item) => item.accountPath === accountPath);
+  if (cache && !cache.displayName && !accountProfileCache.get(accountPath)?.displayName) {
+    await enrichCacheAccountProfiles([cache]);
+    cache = conversationCacheEntries.find((item) => item.accountPath === accountPath) || cache;
+  }
+  const label = getAccountLabel(accountPath, cache || {});
+  const confirmed = await showConfirmDialog({
+    title: '确认删除',
+    message: `确定删除「${label}」的历史扫描记录吗？`,
+    tone: 'warn',
+    confirmLabel: '删除',
+    dangerConfirm: true,
+  });
   if (!confirmed) {
     return;
   }
@@ -968,7 +1099,7 @@ async function useCachedConversations(accountPath = null) {
 
   const cacheResult = await window.exporter.loadConversationCache({ accountPath: targetPath });
   if (!cacheResult.ok || !cacheResult.cache?.conversations?.length) {
-    await showFriendlyError('缓存不可用', '未找到该账号的上次扫描结果，请重新扫描。');
+    await showFriendlyError('缓存不可用', '未找到该账号的历史扫描记录，请重新扫描。');
     void refreshConversationCacheHint();
     return;
   }
@@ -1224,11 +1355,12 @@ stepEls.forEach((el) => {
   });
 });
 
-appNoticeBtn.addEventListener('click', hideAppNotice);
-appNotice.querySelector('[data-notice-dismiss]').addEventListener('click', hideAppNotice);
+appNoticeBtn.addEventListener('click', confirmAppNotice);
+appNoticeCancelBtn.addEventListener('click', dismissAppNotice);
+appNotice.querySelector('[data-notice-dismiss]').addEventListener('click', dismissAppNotice);
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !appNotice.classList.contains('hidden')) {
-    hideAppNotice();
+    dismissAppNotice();
   }
 });
 

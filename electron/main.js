@@ -9,6 +9,7 @@ const {
   saveConversationCache,
   clearConversationCache,
   listConversationCaches,
+  updateCacheDisplayName,
 } = require('../lib/conversationCache');
 
 let mainWindow = null;
@@ -291,6 +292,15 @@ ipcMain.handle('clear-conversation-cache', async (_event, { accountPath }) => {
   }
 });
 
+ipcMain.handle('patch-conversation-cache-label', async (_event, { accountPath, displayName }) => {
+  try {
+    const updated = updateCacheDisplayName(getConversationCachePath(), accountPath, displayName);
+    return { ok: updated };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 ipcMain.handle('list-conversation-caches', async () => {
   try {
     const caches = listConversationCaches(getConversationCachePath());
@@ -314,6 +324,7 @@ ipcMain.handle('scan-conversations', async (_event, options) => {
         conversationCount: msg.conversationCount,
         totalMessages: msg.totalMessages,
         selfWxid: msg.selfWxid,
+        displayName: options.displayName || null,
         conversations: msg.conversations,
       });
       return {

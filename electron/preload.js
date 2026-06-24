@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('exporter', {
   loadConversationCache: (payload) => ipcRenderer.invoke('load-conversation-cache', payload),
   listConversationCaches: () => ipcRenderer.invoke('list-conversation-caches'),
   clearConversationCache: (payload) => ipcRenderer.invoke('clear-conversation-cache', payload),
+  patchConversationCacheLabel: (payload) => ipcRenderer.invoke('patch-conversation-cache-label', payload),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   startExport: (options) => ipcRenderer.invoke('start-export', options),
