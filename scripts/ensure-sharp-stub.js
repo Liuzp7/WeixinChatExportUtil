@@ -43,6 +43,14 @@ function findSharpPackageDirs(dir, found, depth) {
   }
 }
 
+function removeIfExists(filePath) {
+  try {
+    fs.rmSync(filePath, { recursive: true, force: true });
+  } catch {
+    // ignore
+  }
+}
+
 function patchSharpDir(sharpDir) {
   const indexJs = path.join(sharpDir, 'lib', 'index.js');
   const pkgJson = path.join(sharpDir, 'package.json');
@@ -55,6 +63,12 @@ function patchSharpDir(sharpDir) {
 
   fs.mkdirSync(path.dirname(indexJs), { recursive: true });
   fs.writeFileSync(indexJs, STUB, 'utf8');
+
+  // Prevent @electron/rebuild from treating stubbed sharp as a native module.
+  removeIfExists(path.join(sharpDir, 'binding.gyp'));
+  removeIfExists(path.join(sharpDir, 'build'));
+  removeIfExists(path.join(sharpDir, 'src'));
+
   console.log(`已应用 sharp 占位模块: ${pkgName} (${sharpDir})`);
 }
 

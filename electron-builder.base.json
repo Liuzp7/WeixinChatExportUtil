@@ -1,0 +1,41 @@
+{
+  "appId": "com.wetrace.exporter",
+  "productName": "微迹 Wetrace",
+  "icon": "build/icon.ico",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "electron/**/*",
+    "lib/**/*",
+    "assets/dll/**/*",
+    "!assets/models/**",
+    "build/logo.svg",
+    "build/icon.ico",
+    "build/icon.png",
+    "export.js",
+    "package.json",
+    "node_modules/**/*"
+  ],
+  "asarUnpack": [
+    "node_modules/sql.js/dist/**",
+    "node_modules/koffi/**",
+    "node_modules/@xenova/transformers/**",
+    "node_modules/silk-wasm/**",
+    "assets/dll/**"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "shortcutName": "微迹 Wetrace"
+  }
+}

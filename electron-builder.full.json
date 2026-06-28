@@ -1,4 +1,5 @@
 {
+  "extends": "./electron-builder.base.json",
   "productName": "微迹 Wetrace 完整版",
   "extraMetadata": {
     "wetraceVariant": "full"
@@ -7,11 +8,19 @@
     {
       "from": "assets/models",
       "to": "models",
-      "filter": ["**/*", "!**/.staging-cache/**", "!**/.gitkeep"]
+      "filter": [
+        "**/*.json",
+        "**/*.txt",
+        "**/onnx/encoder_model_quantized.onnx",
+        "**/onnx/decoder_model_merged_quantized.onnx",
+        "!**/.staging-cache/**",
+        "!**/.gitkeep"
+      ]
     }
   ],
   "win": {
-    "artifactName": "${productName}-${version}-portable.${ext}"
+    "artifactName": "Wetrace-Full-${version}.${ext}",
+    "executableName": "Wetrace-Full"
   },
   "nsis": {
     "shortcutName": "微迹 Wetrace 完整版"

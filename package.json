@@ -1,6 +1,6 @@
 {
   "name": "wetrace",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "微迹 Wetrace - 微信 PC 聊天记录导出工具",
   "main": "electron/main.js",
   "author": "",
@@ -11,9 +11,9 @@
     "build:hook": "powershell -ExecutionPolicy Bypass -File scripts/build-wexin-hook.ps1",
     "generate-icon": "node scripts/generate-icon.mjs",
     "pack": "electron-builder --dir",
-    "predist": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js",
-    "predist:portable": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js",
-    "predist:installer": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js",
+    "predist": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js && node scripts/ensure-sharp-stub.js",
+    "predist:portable": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js && node scripts/ensure-sharp-stub.js",
+    "predist:installer": "node scripts/generate-icon.mjs && node scripts/ensure-hook-dll.js && node scripts/ensure-sharp-stub.js",
     "predist:portable:full": "npm run predist:portable && node scripts/download-whisper-model.js",
     "predist:installer:full": "npm run predist:installer && node scripts/download-whisper-model.js",
     "download-whisper-model": "node scripts/download-whisper-model.js",
@@ -38,45 +38,6 @@
     "sharp": "^0.35.2"
   },
   "build": {
-    "appId": "com.wetrace.exporter",
-    "productName": "微迹 Wetrace",
-    "icon": "build/icon.ico",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "electron/**/*",
-      "lib/**/*",
-      "assets/dll/**/*",
-      "build/logo.svg",
-      "build/icon.ico",
-      "build/icon.png",
-      "export.js",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "asarUnpack": [
-      "node_modules/sql.js/dist/**",
-      "node_modules/koffi/**",
-      "node_modules/@xenova/transformers/**",
-      "node_modules/silk-wasm/**",
-      "assets/dll/**"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "微迹 Wetrace"
-    }
+    "extends": "./electron-builder.base.json"
   }
 }

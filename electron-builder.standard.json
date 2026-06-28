@@ -1,10 +1,12 @@
 {
+  "extends": "./electron-builder.base.json",
   "productName": "微迹 Wetrace",
   "extraMetadata": {
     "wetraceVariant": "standard"
   },
   "win": {
-    "artifactName": "${productName}-${version}-portable.${ext}"
+    "artifactName": "Wetrace-${version}.${ext}",
+    "executableName": "Wetrace"
   },
   "nsis": {
     "shortcutName": "微迹 Wetrace"
