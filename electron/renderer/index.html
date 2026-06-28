@@ -45,26 +45,36 @@
           </div>
 
           <div class="info-block">
-            <h3>使用流程</h3>
-            <ol class="guide-steps">
-              <li><strong>以管理员身份运行</strong> — 右键程序 →「以管理员身份运行」（首次解密必需）</li>
-              <li><strong>选择账号</strong> — 定位微信数据目录，选择要导出的账号</li>
-              <li><strong>扫描会话</strong> — 首次可能需要几分钟；若需解密，工具会<strong>暂时关闭微信并自动重新打开</strong></li>
-              <li><strong>登录微信</strong> — 微信弹出后，请在窗口中点击「登录」（通常无需重新扫码）</li>
-              <li><strong>选择会话并导出</strong> — 勾选要导出的聊天，选择保存位置和格式</li>
-            </ol>
+            <h3>工作原理</h3>
+            <ul class="info-list">
+              <li><strong>读取本地数据</strong> — 从 <code>xwechat_files</code> 账号目录读取加密的 SQLite 数据库</li>
+              <li><strong>获取解密密钥</strong> — 首次使用时在本机捕获密钥；完成后密钥与解密结果保存在本地，无需每次重复</li>
+              <li><strong>扫描与导出</strong> — 解密后统计会话列表，再按你勾选的格式写入导出文件夹</li>
+            </ul>
+            <details class="disclaimer-details">
+              <summary>不同微信版本如何获取密钥？</summary>
+              <div class="disclaimer-body">
+                <p>工具会自动识别微信版本并选用对应方式，无需手动选择。</p>
+                <ul>
+                  <li><strong>4.1.9 及更早</strong> — 登录后密钥在进程内存中，扫描已登录的微信进程定位</li>
+                  <li><strong>4.1.10 及之后</strong> — 密钥仅在登录瞬间出现，通过内置 DLL Hook 拦截；扫描时会提示何时点击「登录」</li>
+                </ul>
+                <p>两种方式均在本机完成；解密后的数据库保存在账号目录的 <code>db_storage_decrypted</code> 中，由你完全控制。</p>
+              </div>
+            </details>
           </div>
 
           <div class="info-block">
             <h3>导出后你会得到</h3>
+            <p class="hint">实际文件取决于你勾选的导出格式（可多选）</p>
             <div class="output-preview">
               <div class="output-tree">
                 <code>导出文件夹/</code>
-                <code>├── index.html — 用浏览器打开，浏览所有会话（推荐）</code>
-                <code>├── conversations.json — 会话索引与元数据</code>
-                <code>├── contacts.json — 联系人昵称对照表</code>
-                <code>├── messages.csv — 全部消息汇总（勾选 CSV 时）</code>
-                <code>└── chats/ — 每个会话单独的 HTML / JSON / TXT 文件</code>
+                <code>├── index.html — 勾选 HTML 时，浏览器浏览所有会话（推荐）</code>
+                <code>├── conversations.json — 勾选 JSON 时，会话索引与元数据</code>
+                <code>├── contacts.json — 勾选 JSON 时，联系人昵称对照表</code>
+                <code>├── messages.csv — 勾选 CSV 时，全部消息汇总表</code>
+                <code>└── chats/ — 各会话单独的 HTML / JSON / TXT 文件</code>
               </div>
             </div>
           </div>

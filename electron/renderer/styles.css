@@ -1070,6 +1070,17 @@ select:focus {
   font-size: 15px;
 }
 
+.info-block > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.info-block .disclaimer-details {
+  margin: 10px 0 0;
+}
+
 .privacy-block {
   background: var(--primary-soft);
   border-color: rgba(7, 193, 96, 0.2);
