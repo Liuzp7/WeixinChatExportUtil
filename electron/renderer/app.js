@@ -35,6 +35,7 @@ const openIndexBtn = document.getElementById('openIndexBtn');
 const outputGuide = document.getElementById('outputGuide');
 const convList = document.getElementById('convList');
 const convSummary = document.getElementById('convSummary');
+const exportSummary = document.getElementById('exportSummary');
 const convSearch = document.getElementById('convSearch');
 const selectAllBtn = document.getElementById('selectAllBtn');
 const selectNoneBtn = document.getElementById('selectNoneBtn');
@@ -279,6 +280,12 @@ function appendLog(message) {
 function setProgress(percent, text) {
   progressFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
   progressText.textContent = text;
+  progressText.classList.remove('running', 'done');
+  if (percent >= 100) {
+    progressText.classList.add('done');
+  } else if (percent > 0 || exportRunning) {
+    progressText.classList.add('running');
+  }
 }
 
 function getSelectedAccountPath() {
@@ -638,7 +645,11 @@ function updateConvSummary() {
     .filter((item) => selected.includes(item.username))
     .reduce((sum, item) => sum + item.messageCount, 0);
 
-  convSummary.textContent = `已选 ${selected.length} / ${conversationItems.length} 个会话，约 ${formatCount(selectedMessages)} 条消息`;
+  const summaryText = `已选 ${selected.length} / ${conversationItems.length} 个会话，约 ${formatCount(selectedMessages)} 条消息`;
+  convSummary.textContent = summaryText;
+  if (exportSummary) {
+    exportSummary.textContent = summaryText;
+  }
   toExportBtn.disabled = selected.length === 0;
   startBtn.disabled = exportRunning;
   updateStepNavUI();

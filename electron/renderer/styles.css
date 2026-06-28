@@ -628,6 +628,17 @@ select:focus {
   line-height: 1.55;
 }
 
+.step2-tip-list {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  line-height: 1.55;
+}
+
+.step2-tip-list li + li {
+  margin-top: 6px;
+}
+
 .step2-tip code {
   font-size: 11px;
   background: rgba(255, 255, 255, 0.7);
@@ -651,6 +662,31 @@ select:focus {
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid var(--border);
+}
+
+.step4-block-progress {
+  background: #f8fafc;
+}
+
+.step4-progress-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.step4-progress-badge.running {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.step4-progress-badge.done {
+  background: #dcfce7;
+  color: #166534;
 }
 
 .cache-list {

@@ -197,45 +197,82 @@
 
       <!-- Step 4: Export settings -->
       <section id="step4Panel" class="panel hidden">
-        <div class="card">
-          <h2>导出设置</h2>
-          <p class="subhead">选择保存位置和格式，然后点击开始导出。</p>
-
-          <label class="field">
-            <span class="label">保存到</span>
-            <div class="input-row">
-              <input id="outputDir" type="text" placeholder="选择导出文件保存位置" />
-              <button id="pickOutputDir" class="btn secondary" type="button">浏览</button>
-            </div>
-          </label>
-
-          <div class="field">
-            <span class="label">导出格式</span>
-            <div class="format-grid">
-              <label class="format-chip"><input type="checkbox" name="format" value="json" checked /> JSON</label>
-              <label class="format-chip"><input type="checkbox" name="format" value="html" checked /> HTML</label>
-              <label class="format-chip"><input type="checkbox" name="format" value="txt" /> TXT</label>
-              <label class="format-chip"><input type="checkbox" name="format" value="csv" /> CSV</label>
-            </div>
-            <small class="hint">建议勾选 HTML，导出后双击 <code>index.html</code> 即可浏览聊天记录</small>
+        <div class="card step2-card">
+          <div class="step2-intro">
+            <h2>导出设置</h2>
+            <p id="exportSummary" class="subhead">确认保存位置与格式，然后开始导出。</p>
           </div>
 
-          <div class="actions">
+          <div class="step2-flow">
+            <section class="step2-block" aria-labelledby="step4Block1Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">1</span>
+                <div class="step2-block-title">
+                  <h3 id="step4Block1Title">保存位置</h3>
+                </div>
+                <button id="pickOutputDir" class="btn ghost step2-block-action" type="button">浏览</button>
+              </header>
+
+              <details class="step2-tip">
+                <summary>保存在哪里比较合适？</summary>
+                <p>建议选择空文件夹或新建专用目录。导出完成后会自动生成 <code>index.html</code>、<code>conversations.json</code> 及按会话拆分的文件。</p>
+              </details>
+
+              <label class="field step2-field">
+                <div class="input-row">
+                  <input id="outputDir" type="text" placeholder="例如 D:\Documents\微信备份" />
+                </div>
+              </label>
+            </section>
+
+            <section class="step2-block" aria-labelledby="step4Block2Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">2</span>
+                <div class="step2-block-title">
+                  <h3 id="step4Block2Title">导出格式</h3>
+                  <p>可多选，建议至少勾选 HTML 便于浏览</p>
+                </div>
+              </header>
+
+              <details class="step2-tip">
+                <summary>各格式有什么用途？</summary>
+                <ul class="step2-tip-list">
+                  <li><strong>HTML</strong> — 双击 <code>index.html</code> 用浏览器浏览，最直观</li>
+                  <li><strong>JSON</strong> — 结构化数据，便于程序处理</li>
+                  <li><strong>TXT</strong> — 纯文本，每个会话单独文件</li>
+                  <li><strong>CSV</strong> — 表格汇总，适合 Excel 分析</li>
+                </ul>
+              </details>
+
+              <div class="format-grid">
+                <label class="format-chip"><input type="checkbox" name="format" value="html" checked /> HTML</label>
+                <label class="format-chip"><input type="checkbox" name="format" value="json" checked /> JSON</label>
+                <label class="format-chip"><input type="checkbox" name="format" value="txt" /> TXT</label>
+                <label class="format-chip"><input type="checkbox" name="format" value="csv" /> CSV</label>
+              </div>
+            </section>
+
+            <section class="step2-block step4-block-progress" aria-labelledby="step4Block3Title">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">3</span>
+                <div class="step2-block-title">
+                  <h3 id="step4Block3Title">导出进度</h3>
+                </div>
+                <span id="progressText" class="step4-progress-badge">等待开始</span>
+              </header>
+
+              <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
+              <pre id="log" class="log"></pre>
+            </section>
+          </div>
+
+          <div class="actions step2-actions">
             <button id="exportBackBtn" class="btn secondary" type="button">上一步</button>
             <button id="startBtn" class="btn primary" type="button">开始导出</button>
             <button id="cancelBtn" class="btn danger hidden" type="button">取消导出</button>
           </div>
-        </div>
-
-        <div class="card progress-card">
-          <div class="progress-head">
-            <span>导出进度</span>
-            <span id="progressText">等待开始</span>
-          </div>
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
-          </div>
-          <pre id="log" class="log"></pre>
         </div>
       </section>
 
