@@ -1,0 +1,12 @@
+{
+  "productName": "微迹 Wetrace",
+  "extraMetadata": {
+    "wetraceVariant": "standard"
+  },
+  "win": {
+    "artifactName": "${productName}-${version}-portable.${ext}"
+  },
+  "nsis": {
+    "shortcutName": "微迹 Wetrace"
+  }
+}

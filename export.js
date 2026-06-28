@@ -11,6 +11,7 @@ function parseArgs(argv) {
     wxDir: DEFAULT_WX_DIR,
     output: DEFAULT_OUTPUT,
     selfWxid: null,
+    voiceTranscription: false,
   };
 
   for (let i = 2; i < argv.length; i += 1) {
@@ -21,8 +22,11 @@ function parseArgs(argv) {
       args.output = argv[++i];
     } else if (arg === '--self-wxid' && argv[i + 1]) {
       args.selfWxid = argv[++i];
+    } else if (arg === '--voice-transcription') {
+      args.voiceTranscription = true;
     } else if (arg === '--help' || arg === '-h') {
-      console.log('Usage: node export.js [--wx-dir PATH] [--output PATH] [--self-wxid WXID]');
+      console.log('Usage: node export.js [--wx-dir PATH] [--output PATH] [--self-wxid WXID] [--voice-transcription]');
+      console.log('  --voice-transcription  仅完整版或已下载模型的开发环境可用');
       process.exit(0);
     }
   }
@@ -33,10 +37,16 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv);
 
+  if (args.voiceTranscription) {
+    const { assertVoiceTranscriptionAvailable } = require('./lib/voiceTranscription');
+    assertVoiceTranscriptionAvailable();
+  }
+
   const result = await exportWeChatChats({
     wxDir: args.wxDir,
     outputDir: args.output,
     selfWxid: args.selfWxid,
+    voiceTranscription: args.voiceTranscription,
     onProgress(event) {
       if (event.phase === 'init') {
         console.log(`[*] ${event.message}`);
@@ -44,6 +54,8 @@ async function main() {
         console.log(
           `[*] 已导出 ${event.current} 个会话，累计 ${event.totalMessages} 条消息...`
         );
+      } else if (event.phase === 'voice-transcription') {
+        console.log(`[*] ${event.message}`);
       } else if (event.phase === 'done') {
         console.log(
           `[*] 完成: ${event.conversationCount} 个会话, ${event.totalMessages} 条消息`

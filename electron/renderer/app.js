@@ -48,6 +48,11 @@ const progressText = document.getElementById('progressText');
 const progressFill = document.getElementById('progressFill');
 const logEl = document.getElementById('log');
 const successSummary = document.getElementById('successSummary');
+const voiceTranscriptionBlock = document.getElementById('voiceTranscriptionBlock');
+const voiceTranscriptionInput = document.getElementById('voiceTranscription');
+const voiceTranscriptionNotice = document.getElementById('voiceTranscriptionNotice');
+
+let whisperModelBundled = false;
 const appVersion = document.getElementById('appVersion');
 const stepEls = [...document.querySelectorAll('.step')];
 const appNotice = document.getElementById('appNotice');
@@ -147,6 +152,7 @@ function saveSettings() {
     wxDir: wxDirInput.value.trim(),
     outputDir: outputDirInput.value.trim(),
     formats: getSelectedFormats(),
+    voiceTranscription: whisperModelBundled && Boolean(voiceTranscriptionInput?.checked),
     accountPath: selectedAccountPath,
     disclaimerAccepted: disclaimerAccepted.checked,
   };
@@ -162,6 +168,10 @@ function applySettingsToForm(settings) {
       input.checked = settings.formats.includes(input.value);
     }
   }
+  if (voiceTranscriptionInput && whisperModelBundled) {
+    voiceTranscriptionInput.checked = Boolean(settings.voiceTranscription);
+    updateVoiceTranscriptionNotice();
+  }
   if (settings.accountPath) {
     selectedAccountPath = settings.accountPath;
   }
@@ -173,6 +183,25 @@ function applySettingsToForm(settings) {
 
 function getSelectedFormats() {
   return [...document.querySelectorAll('input[name="format"]:checked')].map((el) => el.value);
+}
+
+function updateVoiceTranscriptionUI() {
+  if (voiceTranscriptionBlock) {
+    voiceTranscriptionBlock.classList.toggle('hidden', !whisperModelBundled);
+  }
+  if (!whisperModelBundled && voiceTranscriptionInput) {
+    voiceTranscriptionInput.checked = false;
+  }
+  updateVoiceTranscriptionNotice();
+}
+
+function updateVoiceTranscriptionNotice() {
+  if (!voiceTranscriptionNotice || !voiceTranscriptionInput) return;
+  voiceTranscriptionNotice.classList.toggle('hidden', !voiceTranscriptionInput.checked);
+}
+
+function isVoiceTranscriptionEnabled() {
+  return whisperModelBundled && Boolean(voiceTranscriptionInput?.checked);
 }
 
 function getStepBlockedReason(step) {
@@ -791,6 +820,7 @@ function getExportOptions() {
     keysPath: null,
     formats: getSelectedFormats(),
     selectedUsernames: getSelectedUsernames(),
+    voiceTranscription: isVoiceTranscriptionEnabled(),
   };
 }
 
@@ -1327,6 +1357,11 @@ async function startExport() {
     return;
   }
 
+  if (options.voiceTranscription) {
+    const confirmed = await showVoiceTranscriptionConfirm();
+    if (!confirmed) return;
+  }
+
   exportRunning = true;
   updateStepNavUI();
   startBtn.disabled = true;
@@ -1346,6 +1381,7 @@ async function startExport() {
     keysPath: options.keysPath,
     formats: options.formats,
     selectedUsernames: options.selectedUsernames,
+    voiceTranscription: options.voiceTranscription,
   });
 
   exportRunning = false;
@@ -1363,7 +1399,7 @@ async function startExport() {
       openIndexBtn.classList.add('hidden');
     }
     setProgress(100, '导出完成');
-    successSummary.textContent = `共导出 ${result.result.conversationCount} 个会话，${formatCount(result.result.totalMessages)} 条消息。\n文件已保存到：${result.result.outputDir}`;
+    successSummary.textContent = `共导出 ${result.result.conversationCount} 个会话，${formatCount(result.result.totalMessages)} 条消息${result.result.voiceTranscription ? '（含语音转文字）' : ''}。\n文件已保存到：${result.result.outputDir}`;
     renderOutputGuide(options.formats);
     setStep(5);
   } else if (result.cancelled) {
@@ -1383,6 +1419,8 @@ async function startExport() {
 async function initApp() {
   const info = await window.exporter.getAppInfo();
   appVersion.textContent = `v${info.version}`;
+  whisperModelBundled = Boolean(info.voiceTranscriptionAvailable ?? info.whisperModelBundled);
+  updateVoiceTranscriptionUI();
 
   const settings = await loadSettings();
   applySettingsToForm(settings);
@@ -1523,6 +1561,26 @@ document.querySelectorAll('input[name="format"]').forEach((input) => {
   input.addEventListener('change', saveSettings);
 });
 
+voiceTranscriptionInput?.addEventListener('change', () => {
+  updateVoiceTranscriptionNotice();
+  saveSettings();
+});
+
+function showVoiceTranscriptionConfirm() {
+  return showAppNotice({
+    title: '启用语音转文字？',
+    message: '该功能会在本地识别语音并写入导出文件，转写过程可能花费较长时间。',
+    detail:
+      '· 每条语音大约需要数秒，语音多的会话请预留充足时间\n' +
+      '· 识别结果会缓存在微信账号目录，重复导出同一语音会更快\n' +
+      '· 不会保存原始语音文件，也不会上传到云端',
+    tone: 'guide',
+    confirm: true,
+    confirmLabel: '继续导出',
+    cancelLabel: '取消',
+  });
+}
+
 window.exporter.onProgress((event) => {
   if (event.phase === 'scan' || event.phase === 'init' || event.phase === 'decrypt' || event.phase === 'keys') {
     if (scanRunning) {
@@ -1546,6 +1604,19 @@ window.exporter.onProgress((event) => {
     if (event.current % 5 === 0) {
       appendLog(`已导出 ${event.current} 个会话，累计 ${formatCount(event.totalMessages)} 条消息`);
     }
+  } else if (event.phase === 'voice-transcription') {
+    progressText.classList.add('running');
+    if (event.subphase === 'model-load') {
+      setProgress(8, '正在加载语音识别模型…');
+    } else if (event.subphase === 'transcribing' && event.total) {
+      const pct = 12 + Math.round((event.current / event.total) * 78);
+      setProgress(pct, event.message || '正在转写语音…');
+    } else if (event.subphase === 'done') {
+      setProgress(92, event.message || '语音转写完成');
+    } else {
+      setProgress(10, event.message || '准备语音转写…');
+    }
+    appendLog(event.message);
   } else if (event.phase === 'done') {
     setProgress(100, `完成：${event.conversationCount} 个会话，${formatCount(event.totalMessages)} 条消息`);
   } else if (event.phase === 'error') {

@@ -262,6 +262,37 @@
               </div>
             </section>
 
+            <section id="voiceTranscriptionBlock" class="step2-block voice-transcription-block hidden" aria-labelledby="step4VoiceTitle">
+              <header class="step2-block-head">
+                <span class="step2-num" aria-hidden="true">+</span>
+                <div class="step2-block-title">
+                  <h3 id="step4VoiceTitle">语音转文字</h3>
+                  <p>可选功能，将语音消息识别为文字写入导出结果</p>
+                </div>
+              </header>
+
+              <label class="voice-transcription-toggle" for="voiceTranscription">
+                <input id="voiceTranscription" type="checkbox" name="voiceTranscription" />
+                <span class="voice-transcription-toggle-body">
+                  <strong>启用语音转文字</strong>
+                  <span class="voice-transcription-toggle-desc">识别结果会写入 JSON / TXT / HTML / CSV，不保存原始语音文件</span>
+                </span>
+              </label>
+
+              <div id="voiceTranscriptionNotice" class="voice-transcription-notice hidden" role="note">
+                <div class="voice-transcription-notice-icon" aria-hidden="true">⏱</div>
+                <div>
+                  <strong>导出时间可能明显变长</strong>
+                  <p id="voiceTranscriptionNoticeLead">每条语音约需数秒识别。语音较多时建议先导出少量会话试跑，或在空闲时进行。</p>
+                  <ul class="voice-transcription-notice-list">
+                    <li>完整版已内置语音识别模型，全程本地识别、无需联网</li>
+                    <li>转写结果会缓存在微信账号目录，重复导出更快</li>
+                    <li>识别准确率受口音、背景噪音影响，仅供参考</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
             <section class="step2-block step4-block-progress" aria-labelledby="step4Block3Title">
               <header class="step2-block-head">
                 <span class="step2-num" aria-hidden="true">3</span>

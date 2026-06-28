@@ -1,0 +1,19 @@
+{
+  "productName": "微迹 Wetrace 完整版",
+  "extraMetadata": {
+    "wetraceVariant": "full"
+  },
+  "extraResources": [
+    {
+      "from": "assets/models",
+      "to": "models",
+      "filter": ["**/*", "!**/.staging-cache/**", "!**/.gitkeep"]
+    }
+  ],
+  "win": {
+    "artifactName": "${productName}-${version}-portable.${ext}"
+  },
+  "nsis": {
+    "shortcutName": "微迹 Wetrace 完整版"
+  }
+}

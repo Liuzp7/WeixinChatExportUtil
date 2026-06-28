@@ -177,10 +177,15 @@ ipcMain.handle('save-settings', async (_event, settings) => {
 
 ipcMain.handle('get-app-info', async () => {
   const pkg = require('../package.json');
+  const { isWhisperModelBundled, isVoiceTranscriptionAvailable } = require('../lib/voiceTranscription');
+  const whisperModelBundled = isWhisperModelBundled();
   return {
-    name: pkg.productName || '微迹 Wetrace',
-    version: pkg.version,
+    name: app.getName() || pkg.build?.productName || '微迹 Wetrace',
+    version: app.getVersion() || pkg.version,
     description: '珍藏每一段对话',
+    whisperModelBundled,
+    voiceTranscriptionAvailable: isVoiceTranscriptionAvailable(),
+    variant: whisperModelBundled ? 'full' : 'standard',
   };
 });
 
@@ -375,6 +380,7 @@ function runExportInWorker(options) {
         keysPath: options.keysPath,
         formats: options.formats,
         selectedUsernames: options.selectedUsernames,
+        voiceTranscription: options.voiceTranscription,
       },
     });
     currentWorker = worker;
@@ -430,6 +436,7 @@ ipcMain.handle('start-export', async (_event, options) => {
       keysPath: options.keysPath || null,
       formats: options.formats || ['json'],
       selectedUsernames: options.selectedUsernames || null,
+      voiceTranscription: Boolean(options.voiceTranscription),
     });
     if (msg.ok) {
       return { ok: true, result: msg.result };
