@@ -1,0 +1,60 @@
+name: Build Wetrace Portable (from source)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/wexin-hook/**'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. 安装 Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 2. 激活 MSVC 编译环境
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      # 3. 清理旧 build 目录（防止 CMakeCache.txt 冲突）
+      - name: Clean old build artifacts
+        shell: cmd
+        run: |
+          if exist native\wexin-hook\build rmdir /s /q native\wexin-hook\build
+
+      # 4. 从源码编译 wexin_hook.dll
+      - name: Build hook DLL from source
+        shell: cmd
+        run: |
+          cmake -S native/wexin-hook -B native/wexin-hook/build -A x64
+          cmake --build native/wexin-hook/build --config Release
+
+      # 5. 将编译好的 DLL 复制到 assets 目录
+      - name: Copy built DLL to assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path assets/dll | Out-Null
+          Copy-Item native/wexin-hook/build/Release/wexin_hook.dll assets/dll/wexin_hook.dll -Force
+          Copy-Item native/wexin-hook/build/Release/wexin_hook.dll assets/dll/Release/wexin_hook.dll -Force
+
+      # 6. 安装 npm 依赖
+      - name: Install npm dependencies
+        run: npm install
+
+      # 7. 打包便携版 exe
+      - name: Build portable exe
+        run: npm run dist:portable
+
+      # 8. 上传成品（编译好的 DLL + 完整的 exe）
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wetrace-Portable-from-source
+          path: |
+            dist/*.exe
+            assets/dll/wexin_hook.dll
